@@ -9,7 +9,7 @@ Rails.application.routes.draw do
   post 'contact_details', to: 'contact_details#create'
   patch 'contact_details', to: 'contact_details#update'
 
-  resources :residency_status, only: [:new]
+  resources :residency_status, only: [:new, :index, :create]
 
   get 'check_your_answers', to: 'check_your_answers#show'
 

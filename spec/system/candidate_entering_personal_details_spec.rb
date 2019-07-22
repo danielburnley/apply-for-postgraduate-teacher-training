@@ -18,6 +18,7 @@ describe 'A candidate entering personal details' do
         visit '/check_your_answers'
 
         expect(page).to have_content('First name John')
+        # expect(page).to have_content('Residency status UK citizen')
       end
     end
 
@@ -33,6 +34,18 @@ describe 'A candidate entering personal details' do
 
       it 'sees another question about nationality' do
         expect(page).to have_content('What is your residency status?')
+      end
+
+      context 'who chooses a type 2 visa' do
+        before do
+          choose 'I have a tier 2 visa'
+          click_on t('application_form.save_and_continue')
+        end
+
+        it 'sees that visa as their residency status' do
+          visit '/check_your_answers'
+          expect(page).to have_content('Residency status Tier 2 Visa')
+        end
       end
     end
   end
