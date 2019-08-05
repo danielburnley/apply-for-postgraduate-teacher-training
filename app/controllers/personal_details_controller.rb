@@ -8,7 +8,14 @@ class PersonalDetailsController < ApplicationController
   end
 
   def create
-    @personal_details = PersonalDetails.new(personal_details_params)
+    begin
+      @personal_details = PersonalDetails.new(personal_details_params)
+    rescue ActiveRecord::MultiparameterAssignmentErrors
+      keys = personal_details_params.keys.select { |k| /^date_of_birth/.match(k) }
+      @personal_details = PersonalDetails.new(
+        personal_details_params.except(*keys)
+      )
+    end
 
     if @personal_details.save
       redirect_to new_contact_details_path
