@@ -27,6 +27,11 @@ module ApplyForPostgraduateTeacherTraining
     # -- all .rb files in that directory are automatically loaded after loading
     # the framework and any gems in your application.
 
+    # Always log to STDOUT
+    logger           = ActiveSupport::Logger.new(STDOUT)
+    logger.formatter = config.log_formatter
+    $stdout.sync     = true
+
     # Don't generate system test files.
     config.generators.system_tests = nil
   end
