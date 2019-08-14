@@ -8,6 +8,7 @@ gem 'puma', '~> 4.1'
 gem 'pg', '~> 1.1.4'
 
 gem 'webpacker'
+gem 'devise'
 
 # Linting
 gem 'rubocop'
