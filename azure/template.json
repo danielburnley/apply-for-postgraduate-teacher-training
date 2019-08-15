@@ -170,7 +170,7 @@
                             },
                             {
                                 "name": "RAILS_ENV",
-                                "value": "[parameters('railsEnv')]"
+                                "value": "development"
                             },
                             {
                                 "name": "DB_HOSTNAME",

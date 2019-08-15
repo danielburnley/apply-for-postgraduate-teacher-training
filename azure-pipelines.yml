@@ -6,9 +6,21 @@ trigger:
 
 pr: none
 
+resources:
+  repositories:
+    - repository: pipeline_building_blocks
+      type: github
+      name: 'DFE-Digital/apply-for-postgraduate-teacher-training'
+      ref: 'refs/heads/refactor-pipeline'
+      endpoint: 'GitHub (DfE-Digital)'
+
 variables:
-  imageName: 'apply-for-postgraduate-teacher-training'
   debug: true
+  imageName: 'apply-for-postgraduate-teacher-training'
+  subscriptionPrefix: 's106'
+  serviceName: 'apply'
+  databaseUsername: 'applyadm512'
+    
 
 stages:
 - stage: build_test_release
@@ -109,44 +121,41 @@ stages:
   dependsOn: build_test_release
   condition: and(succeeded('build_test_release'), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   jobs:
-  - template: azure-pipelines-deploy-template.yml
+  - template: azure-pipelines/azure-pipelines-deploy-job-template.yml@pipeline_building_blocks
     parameters:
       debug: $(debug)
-      subscriptionPrefix: 's106'
+      subscriptionPrefix: '$(subscriptionPrefix)'
       subscriptionName: 'Apply (106) - Dev'
       environment: 'development'
       resourceEnvironmentName: 'd01'
-      serviceName: 'apply'
+      serviceName: '$(serviceName)'
       containerImageReference: '$(imageName):$(build.buildNumber)'
-      databaseName: 'apply'
-      databaseUsername: 'applyadm512'
+      databaseName: '$(serviceName)'
+      databaseUsername: '$(databaseUsername)'
       databasePassword: '$(databasePassword)'
       dockerhubUsername: '$(dockerHubUsername)'
       securityKeyBase: '$(secretKeyBase)'
-      railsEnv: 'development'
 
-      
+
 - stage: deploy_test
   displayName: 'Deploy - Test'
   dependsOn: build_test_release
   condition: and(succeeded('build_test_release'), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   jobs:
-  - template: azure-pipelines-deploy-template.yml
+  - template: azure-pipelines/azure-pipelines-deploy-job-template.yml@pipeline_building_blocks
     parameters:
       debug: $(debug)
-      subscriptionPrefix: 's106'
+      subscriptionPrefix: '$(subscriptionPrefix)'
       subscriptionName: 'Apply (106) - Test'
       environment: 'test'
       resourceEnvironmentName: 't01'
-      serviceName: 'apply'
+      serviceName: '$(serviceName)'
       containerImageReference: '$(imageName):$(build.buildNumber)'
-      databaseName: 'apply'
-      databaseUsername: 'applyadm512'
+      databaseName: '$(serviceName)'
+      databaseUsername: '$(databaseUsername)'
       databasePassword: '$(databasePassword)'
       dockerhubUsername: '$(dockerHubUsername)'
       securityKeyBase: '$(secretKeyBase)'
-      railsEnv: 'development'
-
       
 # - stage: deploy_production
 #   displayName: 'Deploy - Production'
@@ -167,4 +176,3 @@ stages:
 #       databasePassword: '$(databasePassword)'
 #       dockerhubUsername: '$(dockerHubUsername)'
 #       securityKeyBase: '$(secretKeyBase)'
-#       railsEnv: 'development'

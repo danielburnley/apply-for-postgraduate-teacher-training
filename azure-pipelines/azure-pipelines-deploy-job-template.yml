@@ -14,7 +14,6 @@ parameters:
   containerStartTimeLimit: '600'
   warmupPingPath: '/personal-details/new'
   warmupPingStatus: '200'
-  railsEnv: 'production'
   securityAlertEmail: 'apprenticeshipsdevops@education.gov.uk'
   
 jobs:
@@ -51,7 +50,6 @@ jobs:
                 -serviceName "${{parameters.serviceName}}" 
                 -dockerHubUsername "${{parameters.dockerHubUsername}}" 
                 -containerImageReference "${{parameters.containerImageReference}}" 
-                -railsEnv "${{parameters.railsEnv}}" 
                 -databaseName "${{parameters.databaseName}}" 
                 -databaseUsername "${{parameters.databaseUsername}}" 
                 -databasePassword "${{parameters.databasePassword}}" 
