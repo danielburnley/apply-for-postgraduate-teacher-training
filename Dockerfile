@@ -1,14 +1,13 @@
 FROM ruby:2.6.3-alpine
 
+ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver APP_HOME=/app
+WORKDIR $APP_HOME
+
 RUN apk add --update build-base postgresql-dev git tzdata nodejs yarn && \
     cp /usr/share/zoneinfo/Europe/London /etc/localtime && \
     echo "Europe/London" > /etc/timezone
 
 RUN gem install bundler:2.0.2
-
-ENV APP_HOME /app
-RUN mkdir $APP_HOME
-WORKDIR $APP_HOME
 
 ADD Gemfile Gemfile.lock package.json yarn.lock $APP_HOME/
 RUN yarn install --check-files
