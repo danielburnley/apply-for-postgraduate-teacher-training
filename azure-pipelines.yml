@@ -26,94 +26,7 @@ stages:
 - stage: build_test_release
   displayName: 'Build, Test & Release'
   jobs:
-  - job: build_and_test_docker_image
-    displayName: 'Build & Test Docker Image'
-    pool:
-      vmImage: 'Ubuntu-16.04'
-
-    variables:
-      system.debug: $(debug)
-
-    steps:
-    - script: |
-        GIT_SHORT_SHA=$(echo $(Build.SourceVersion) | cut -c 1-7)
-        docker_path=$(dockerHubUsername)/$(imageName)
-        echo '##vso[task.setvariable variable=compose_file]docker-compose.yml:docker-compose.azure.yml'
-        echo "##vso[build.updatebuildnumber]$GIT_SHORT_SHA"
-        echo "##vso[task.setvariable variable=docker_path;]$docker_path"
-      displayName: 'Set version number'
-
-    - script: |
-        make setup
-      displayName: 'Build & setup'
-      env:
-        DOCKER_OVERRIDE: $(dockerOverride)
-        dockerHubUsername: $(dockerHubUsername)
-        dockerHubImageName: $(imageName)
-
-    - script: |
-        make ci.lint-ruby
-      displayName: 'Rubocop'
-      env:
-        DOCKER_OVERRIDE: $(dockerOverride)
-        dockerHubUsername: $(dockerHubUsername)
-        dockerHubImageName: $(imageName)
-
-    - script: |
-        make ci.lint-erb
-      displayName: 'ERB lint'
-      env:
-        DOCKER_OVERRIDE: $(dockerOverride)
-        dockerHubUsername: $(dockerHubUsername)
-        dockerHubImageName: $(imageName)
-
-    - script: |
-        make ci.test
-      displayName: 'Execute tests'
-      env:
-        DOCKER_OVERRIDE: $(dockerOverride)
-        dockerHubUsername: $(dockerHubUsername)
-        dockerHubImageName: $(imageName)
-
-    - task: Docker@1
-      displayName: Tag image with current build number $(Build.BuildNumber)
-      inputs:
-        command: Tag image
-        imageName: "$(docker_path):latest"
-        arguments: "$(docker_path):$(Build.BuildNumber)"
-
-    - task: Docker@1
-      displayName: Docker Hub login
-      inputs:
-        command: "login"
-        containerregistrytype: Container Registry
-        dockerRegistryEndpoint: DfE Docker Hub
-
-    - task: Docker@1
-      displayName: Push tagged image
-      inputs:
-        command: Push an image
-        imageName: "$(docker_path):$(Build.BuildNumber)"
-
-    - task: Docker@1
-      displayName: Push tagged image (latest) if master
-      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-      inputs:
-        command: Push an image
-        imageName: "$(docker_path):latest"
-
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Pipeline Artifacts'
-      inputs:
-        path: '$(System.DefaultWorkingDirectory)/azure/'
-        artifactName: 'arm_template'
-
-    - task: PublishTestResults@2
-      displayName: 'Publish Test Results'
-      condition: succeededOrFailed()
-      inputs:
-        testRunner: JUnit
-        testResultsFiles: 'rspec-results.xml'
+  - template: azure-pipelines/azure-pipelines-build-docker-container-job-template.yml@pipeline_building_blocks
 
 
 - stage: deploy_dev
@@ -157,22 +70,23 @@ stages:
       dockerhubUsername: '$(dockerHubUsername)'
       securityKeyBase: '$(secretKeyBase)'
       
-# - stage: deploy_production
-#   displayName: 'Deploy - Production'
+
+# - stage: deploy_test
+#   displayName: 'Deploy - Test'
 #   dependsOn: build_test_release
 #   condition: and(succeeded('build_test_release'), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
 #   jobs:
-#   - template: azure-pipelines-deploy-template.yml
+#   - template: azure-pipelines/azure-pipelines-deploy-job-template.yml@pipeline_building_blocks
 #     parameters:
 #       debug: $(debug)
-#       subscriptionPrefix: 's106'
+#       subscriptionPrefix: '$(subscriptionPrefix)'
 #       subscriptionName: 'Apply (106) - Production'
 #       environment: 'production'
 #       resourceEnvironmentName: 'p01'
-#       serviceName: 'apply'
+#       serviceName: '$(serviceName)'
 #       containerImageReference: '$(imageName):$(build.buildNumber)'
-#       databaseName: 'apply'
-#       databaseUsername: 'applyadm512'
+#       databaseName: '$(serviceName)'
+#       databaseUsername: '$(databaseUsername)'
 #       databasePassword: '$(databasePassword)'
 #       dockerhubUsername: '$(dockerHubUsername)'
 #       securityKeyBase: '$(secretKeyBase)'
